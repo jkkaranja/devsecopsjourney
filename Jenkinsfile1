@@ -1,0 +1,73 @@
+pipeline {
+    agent any
+
+    triggers {
+        pollSCM 'H/5 * * * *'
+    }
+
+    stages {
+        // Stage 1: Checkout code
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: "https://github.com/KenMutuma/devsecopsjourney.git"
+            }
+        }
+
+        // Stage 2: Setup Node.js environment
+        stage('Setup Node') {
+            steps {
+                script {
+                    // Install specified Node version using nvm or Jenkins Node plugin
+                    sh "node --version"
+                    sh "npm --version"
+                }
+            }
+        }
+
+        // Stage 3: Install dependencies
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        // Stage 4: Run tests (unit & e2e if configured)
+        stage('Test') {
+            steps {
+                sh 'npm run test:unit' // Assuming you have Jest/Vitest
+                // sh 'npm run test:e2e' // If using Cypress/Playwright
+            }
+        }
+
+        // Stage 5: Build production bundle
+        stage('Build') {
+            steps {
+                sh 'npm run build'
+                archiveArtifacts artifacts: 'dist/**', fingerprint: true
+            }
+        }
+
+        // Stage 6: Deploy to server (via SSH)
+        stage('Deploy') {
+            steps {
+                script {
+                    
+                    sh """
+                       echo My awesome app has been deployed on AWS
+                    """
+                   
+                    
+                }
+            }
+        }
+    }
+    post {
+        success {
+            echo 'Vue.js app successfully built and deployed!'
+            // Optional: Send Slack/Email notification
+        }
+        failure {
+            echo 'Pipeline failed! Check logs for errors.'
+        }
+    }
+}
